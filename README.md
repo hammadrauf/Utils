@@ -14,6 +14,7 @@ Utilities
     ![CPU Utilization Chart - Maxed out at 45%](images/cpu-utilization-maxed-out-at-45-percent.png)  
 2. load_test_kivy.py  
     ![Kivy Load test execution](images/Execution-of-load-test-kivy-py.png)  
+    ![Animated Load test Kivy](images/Animated-Load-Test-Kivy.gif)
 
 ## Kivy for Animation
 Kivy is an Open Source Python App Development Framework. It can be used to Build and distribute beautiful Python cross-platform GUI apps with ease. Kivy runs on Android, iOS, Linux, macOS and Windows.  
