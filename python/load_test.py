@@ -8,7 +8,6 @@ import time
 from optparse import OptionParser
 from multiprocessing import Process, Event
 
-
 parser = OptionParser(usage=f"""usage: %prog [--times INT] [--help] [--version]
 
 Description
@@ -32,7 +31,7 @@ Examples
 
     - ./%prog -t 20
                       
-    - python ./%prog -- times 120
+    - python ./%prog --times 120
 
 Requirements
     - python 3.6 or greater
@@ -50,10 +49,6 @@ except Exception as e:
     print(f"Error: {e}")
     os.exit(0)
 
-# Global flag to signal threads to stop
-#stop_flag = False
-
-
 def count_up_and_down(stop_event=None):
     """
     Function to count up to the maximum integer and then count down.
@@ -65,17 +60,16 @@ def count_up_and_down(stop_event=None):
             for i in itertools.count(1) :
                 if stop_event.is_set():
                     return []
-                time.sleep(0.05)
+                time.sleep(0.001)
             # Count down
             for i in itertools.count(i, -1):
                 if stop_event.is_set() or i <= 1:
                     return []
-                time.sleep(0.05)
+                time.sleep(0.001)
     except Exception as e:
         print(f"Thread encountered an error: {e}")
     finally:
         return []
-
 
 def check_if_key_pressed_proc(stop_event=None):
     print("Awaiting key press ... (Space bar to stop)")
@@ -87,41 +81,50 @@ def check_if_key_pressed_proc(stop_event=None):
     print("Key pressed")
     return []
 
-
-def start_load_test (times=1):
-    """
-    Starts the load test using all available CPU cores!
-    """
-    num_cores = os.cpu_count()
-    total_processes = num_cores*times
-    print(f"Starting load test on {num_cores} cores, {times} times, ie {total_processes} threads ... ")
-    
-    from multiprocessing import Event
-    stop_event = Event()
-
-    # Start the key press checker in a separate process
-    key_proc = Process(target=check_if_key_pressed_proc, args=(stop_event,))
-    key_proc.start()    
+def worker_process(stop_event, threads_per_proc):
+    from concurrent.futures import ThreadPoolExecutor
+    import concurrent.futures
+    import time
+    import itertools
 
     myf = []
-    with ThreadPoolExecutor(max_workers=total_processes) as executor:
-        for _ in range(total_processes):
+    with ThreadPoolExecutor(max_workers=threads_per_proc) as executor:
+        for _ in range(threads_per_proc):
             myf.append(executor.submit(count_up_and_down, stop_event))
-
-        print("Running load test.")
-
-        # Wait for the key process to finish (i.e., space pressed)
-        key_proc.join()
-
-        # Wait for all threads to finish
-        print("Waiting for threads to finish..")
-        stop_event.set()  # Signal all threads to stop
         for future in concurrent.futures.as_completed(myf):
             pass
-            #future.result ()
+
+def start_load_test(times=1):
+    """
+    Starts the load test using n-1 worker processes, each with threads.
+    Main process checks for key press.
+    """
+    num_cores = os.cpu_count()
+    num_worker_procs = max(1, num_cores - 1)
+    total_threads = num_worker_procs * times
+
+    print(f"Starting load test on {num_worker_procs} worker processes, {times} threads per process, total {total_threads} threads ...")
+
+    from multiprocessing import Event, Process, Manager
+
+    stop_event = Event()
+    processes = []
+
+    # Start worker processes
+    for _ in range(num_worker_procs):
+        p = Process(target=worker_process, args=(stop_event, times))
+        p.start()
+        processes.append(p)
+
+    # Main process checks for key press
+    check_if_key_pressed_proc(stop_event)
+
+    # Wait for all worker processes to finish
+    stop_event.set()
+    for p in processes:
+        p.join()
 
     print("Load test stopped.")
-
 
 def main() :
     """
@@ -131,7 +134,6 @@ def main() :
         start_load_test(times=ptimes)
     except KeyboardInterrupt:
         print("Interrupted by user. Exiting ... ")
-
 
 if __name__ == "__main__":
     main()
