@@ -41,7 +41,7 @@ Requirements
 parser.add_option('-t','--times', dest='ptimes', metavar = "NUMBER", type='int', help='Number of times to run the load test', default=1)
 
 try:
-    (options, args) = parser.parse_args ()
+    (options, args) = parser.parse_args()
     ptimes = options.ptimes
 except ValueError:
     print("Could not convert option value to an integer.")

@@ -6,6 +6,11 @@ Utilities
     - CPU Load test utility written in Python.
 2. load_test_kivy.py  
     - CPU Load test using Kivy for a GUI Interface. (Under development)
+    - Run as:
+        - python python\load_test_kivy.py -- 20
+            * For 20 Threads per CPU core Process
+        - python python\load_test_kivy.py
+            * Default is 1 Thread per Process
 
 ## Screen Shots
 1. load_test.py  

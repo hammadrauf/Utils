@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import itertools
 import random
@@ -108,11 +109,21 @@ class LoadBarGraph(Widget):
                         size=(6, 6)  # Smaller ball size
                     )
 
+try:
+    custom_args = [arg for arg in sys.argv if not arg.startswith("--")]
+    ptimes = 1 if len(custom_args) < 2 else int(custom_args[1])
+except (ValueError, IndexError):
+    print("Could not convert option value to an integer.")
+    exit(1)
+except Exception as e:
+    print(f"Error: {e}")
+    exit(1)
+
 class LoadTestApp(App):
     def build(self):
         num_cores = os.cpu_count()
         num_worker_procs = max(1, num_cores - 1)
-        threads_per_proc = 4  # Or get from user
+        threads_per_proc = ptimes  # Use the parsed argument
 
         manager = Manager()
         shared_state = manager.dict()
