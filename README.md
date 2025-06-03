@@ -12,7 +12,8 @@ Utilities
     !["Console (oh-my-posh) execution for load_test.py"](images/Execution-of-load_test-py.png)  
     ![Console execution for modified load_test.py](images/Execution-of-modified-load_test-py.png)  
     ![CPU Utilization Chart - Maxed out at 45%](images/cpu-utilization-maxed-out-at-45-percent.png)  
-
+2. load_test_kivy.py  
+    ![Kivy Load test execution](images/Execution-of-load-test-kivy-py.png)  
 
 ## Kivy for Animation
 Kivy is an Open Source Python App Development Framework. It can be used to Build and distribute beautiful Python cross-platform GUI apps with ease. Kivy runs on Android, iOS, Linux, macOS and Windows.  
