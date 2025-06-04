@@ -7,10 +7,12 @@ Utilities
 2. load_test_kivy.py  
     - CPU Load test using Kivy for a GUI Interface. (Under development)
     - Run as:
-        - python python\load_test_kivy.py -- 20
+        - python python\load_test_kivy.py -- 7
             * For 20 Threads per CPU core Process
         - python python\load_test_kivy.py
             * Default is 1 Thread per Process
+        - python python\load_test_kivy.py -- 2 0.2
+            * Launch with 2 Threads per process and slow down by 0.2 seconds per Thread step.
 
 ## Screen Shots
 1. load_test.py  

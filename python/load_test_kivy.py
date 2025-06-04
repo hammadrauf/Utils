@@ -30,7 +30,8 @@ def count_up_and_down(proc_idx, thread_idx, stop_event, shared_state):
                 i -= 1
                 if i <= 1 or random.random() < 0.01:
                     direction = 1
-            time.sleep(0.01)
+            if anim_speed > 0.0:
+                time.sleep(anim_speed)
     except Exception as e:
         print(f"Thread error: {e}")
 
@@ -109,9 +110,11 @@ class LoadBarGraph(Widget):
                         size=(6, 6)  # Smaller ball size
                     )
 
+# --- Parse command line arguments using sys.argv ---
 try:
     custom_args = [arg for arg in sys.argv if not arg.startswith("--")]
     ptimes = 1 if len(custom_args) < 2 else int(custom_args[1])
+    anim_speed = 0.0 if len(custom_args) < 3 else float(custom_args[2])
 except (ValueError, IndexError):
     print("Could not convert option value to an integer.")
     exit(1)
