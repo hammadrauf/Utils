@@ -3,6 +3,7 @@ import sys
 import time
 import itertools
 import random
+import multiprocessing
 from multiprocessing import Process, Event, Manager
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -13,6 +14,7 @@ from collections import defaultdict, deque
 
 # Worker thread function
 def count_up_and_down(proc_idx, thread_idx, stop_event, shared_state):
+    global anim_speed, ptimes
     try:
         max_count = 100
         # Each thread starts at a random value within the range
@@ -37,6 +39,7 @@ def count_up_and_down(proc_idx, thread_idx, stop_event, shared_state):
 
 # Worker process function
 def worker_process(proc_idx, threads_per_proc, stop_event, shared_state):
+    global anim_speed, ptimes
     from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=threads_per_proc) as executor:
         for thread_idx in range(threads_per_proc):
@@ -47,6 +50,7 @@ def worker_process(proc_idx, threads_per_proc, stop_event, shared_state):
 # Kivy Widget for the bar graph
 class LoadBarGraph(Widget):
     def __init__(self, num_procs, threads_per_proc, shared_state, **kwargs):
+        global anim_speed, ptimes
         super().__init__(**kwargs)
         self.num_procs = num_procs
         self.threads_per_proc = threads_per_proc
@@ -66,6 +70,7 @@ class LoadBarGraph(Widget):
         Clock.schedule_interval(self.update_graph, 0.05)
 
     def update_graph(self, dt):
+        global anim_speed, ptimes
         self.canvas.clear()
         width = self.width
         height = self.height
@@ -111,10 +116,49 @@ class LoadBarGraph(Widget):
                     )
 
 # --- Parse command line arguments using sys.argv ---
+""" try:
+    custom_args = [arg for arg in sys.argv]
+    print(f"Custom args: {custom_args}")
+    if "--" in custom_args:
+        idx = custom_args.index("--")
+        print("Arguments after '--':", custom_args[idx+1:])
+        ptimes = 1 if len(custom_args) < idx + 2 else int(custom_args[idx + 1])
+        anim_speed = 0.0 if len(custom_args) < idx + 3 else float(custom_args[idx + 2])
+    else:
+        print("No '--' found, using default values.")
+        ptimes = 1
+        anim_speed = 0.0
+except (ValueError, IndexError) as e:
+    print(f"Error parsing command line arguments: {e}")
+    sys.exit(1)
+except Exception as e:
+    print(f"Error: {e}")
+    sys.exit(1) """
+
+def to_int(value):
+    try:
+        return int(value)
+    except Exception:
+        return None
+
+def to_float(value):
+    try:
+        return float(value)
+    except Exception:
+        return None
+
+ptimes = 1
+anim_speed = 0.0
+
 try:
     custom_args = [arg for arg in sys.argv if not arg.startswith("--")]
-    ptimes = 1 if len(custom_args) < 2 else int(custom_args[1])
-    anim_speed = 0.0 if len(custom_args) < 3 else float(custom_args[2])
+    print(f"Custom args: {custom_args}")
+    ptimes = 1 if (len(custom_args) < 2 or to_int(custom_args[1])==None ) else int(custom_args[1])
+    anim_speed = 0.0 if (len(custom_args) < 3 or to_float(custom_args[2])==None ) else float(custom_args[2])
+    if len(custom_args) > 3 and len(custom_args) < 6:
+        ptimes = 1 if (len(custom_args) > 3 or to_int(custom_args[3])==None ) else int(custom_args[3])
+        anim_speed = 0.0 if (len(custom_args) > 3 or to_float(custom_args[4])==None ) else float(custom_args[4])
+
 except (ValueError, IndexError):
     print("Could not convert option value to an integer.")
     exit(1)
@@ -124,6 +168,7 @@ except Exception as e:
 
 class LoadTestApp(App):
     def build(self):
+        global ptimes, anim_speed
         num_cores = os.cpu_count()
         num_worker_procs = max(1, num_cores - 1)
         threads_per_proc = ptimes  # Use the parsed argument
@@ -155,4 +200,5 @@ class LoadTestApp(App):
             p.join()
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     LoadTestApp().run()
